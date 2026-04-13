@@ -1,0 +1,230 @@
+
+<style>
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+.w-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem;margin-bottom:10px}
+.w-label{font-size:11px;color:var(--color-text-secondary);font-weight:500;letter-spacing:.04em;text-transform:uppercase;margin-bottom:10px}
+.tranche-tab{padding:7px 14px;border-radius:20px;font-size:12px;font-weight:500;border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-secondary);cursor:pointer;transition:all .15s}
+.tranche-tab.active-t1{background:#E1F5EE;border-color:#0F6E56;color:#085041}
+.tranche-tab.active-t2{background:#E6F1FB;border-color:#185FA5;color:#0C447C}
+.tranche-tab.active-t3{background:#EEEDFE;border-color:#534AB7;color:#3C3489}
+.pill-row{display:flex;gap:8px;margin-bottom:10px}
+.pill{flex:1;border-radius:var(--border-radius-md);padding:12px;border:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary)}
+.pill.good{background:#E1F5EE;border-color:#0F6E56}
+.pill.warn{background:#FAEEDA;border-color:#854F0B}
+.pill-lbl{font-size:11px;margin-bottom:3px}
+.pill-lbl.g{color:#085041}.pill-lbl.w{color:#633806}.pill-lbl.n{color:var(--color-text-secondary)}
+.pill-val{font-size:17px;font-weight:500}
+.pill-val.g{color:#085041}.pill-val.w{color:#633806}.pill-val.n{color:var(--color-text-primary)}
+.pill-sub{font-size:10px;color:var(--color-text-tertiary);margin-top:2px}
+.diff-badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:500;padding:3px 10px;border-radius:10px;margin-bottom:12px}
+.diff-badge.neg{background:#FAEEDA;color:#633806}
+.diff-badge.pos{background:#E1F5EE;color:#085041}
+.bar-lbl{display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;color:var(--color-text-secondary)}
+.bar-track{height:5px;border-radius:3px;background:var(--color-background-tertiary);margin-bottom:8px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width .35s ease}
+.amt-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.amt-lbl{font-size:12px;color:var(--color-text-secondary);white-space:nowrap}
+.amt-val{font-size:14px;font-weight:500;color:var(--color-text-primary);min-width:72px;text-align:right}
+.confirm-btn{width:100%;padding:10px;border-radius:var(--border-radius-md);font-size:13px;font-weight:500;border:none;cursor:pointer;margin-bottom:8px;font-family:inherit;transition:opacity .15s}
+.cancel-btn{width:100%;padding:10px;border-radius:var(--border-radius-md);font-size:13px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer;font-family:inherit;transition:background .15s}
+.cancel-btn:hover{background:var(--color-background-secondary)}
+.chip{font-size:10px;padding:3px 8px;border-radius:8px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);color:var(--color-text-secondary)}
+.tranche-note{font-size:11px;line-height:1.5;color:var(--color-text-secondary);padding:8px 10px;border-radius:var(--border-radius-md);border-left:2px solid;margin-bottom:10px}
+</style>
+
+<h2 class="sr-only">Withdrawal impact calculator showing how withdrawing from T1, T2 or T3 affects projected monthly retirement income</h2>
+
+<div style="max-width:400px;margin:0 auto;background:var(--color-background-secondary);border-radius:var(--border-radius-lg);padding:14px">
+
+  <div style="font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:2px">Withdrawal calculator</div>
+  <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:14px">Age 34 · Retires at 65 · 31 years to grow</div>
+
+  <!-- Tranche selector -->
+  <div style="margin-bottom:14px">
+    <div class="w-label">Withdraw from</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="tranche-tab active-t1" id="tab-t1" onclick="setTranche('t1')">T1 — cash</button>
+      <button class="tranche-tab" id="tab-t2" onclick="setTranche('t2')">T2 — bonds</button>
+      <button class="tranche-tab" id="tab-t3" onclick="setTranche('t3')">T3 — growth</button>
+    </div>
+  </div>
+
+  <!-- Tranche note -->
+  <div class="tranche-note" id="tranche-note" style="border-color:#0F6E56;background:#E1F5EE;color:#085041"></div>
+
+  <!-- Balance display -->
+  <div class="w-card" style="margin-bottom:10px;padding:10px 14px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:12px;color:var(--color-text-secondary)">Available balance</span>
+      <span style="font-size:16px;font-weight:500;color:var(--color-text-primary)" id="balance-display">£8,200</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+      <span style="font-size:11px;color:var(--color-text-tertiary)">After withdrawal</span>
+      <span style="font-size:13px;font-weight:500;color:var(--color-text-secondary)" id="balance-after">—</span>
+    </div>
+  </div>
+
+  <!-- Amount slider -->
+  <div class="w-card">
+    <div class="w-label">Withdrawal amount</div>
+    <div class="amt-row">
+      <input type="range" min="500" max="8000" step="500" value="3000" id="amt-slider" style="flex:1">
+      <span class="amt-val" id="amt-display">£3,000</span>
+    </div>
+
+    <!-- Impact pills -->
+    <div class="pill-row">
+      <div class="pill good">
+        <div class="pill-lbl g">Current projection</div>
+        <div class="pill-val g" id="income-before">£1,420/mo</div>
+        <div class="pill-sub" id="range-before">£1,180–£1,680</div>
+      </div>
+      <div class="pill warn">
+        <div class="pill-lbl w">After withdrawal</div>
+        <div class="pill-val w" id="income-after">—</div>
+        <div class="pill-sub" id="range-after">—</div>
+      </div>
+    </div>
+
+    <div class="diff-badge neg" id="diff-badge">
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 1v8M1 7l4 3 4-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span id="diff-text">calculating...</span>
+    </div>
+
+    <!-- Pot comparison bars -->
+    <div class="bar-lbl">
+      <span>Pot at 65 — current</span>
+      <span style="font-weight:500;color:var(--color-text-primary)" id="pot-before">£218,400</span>
+    </div>
+    <div class="bar-track"><div class="bar-fill" id="bar-before" style="width:100%;background:#1D9E75"></div></div>
+    <div class="bar-lbl">
+      <span>Pot at 65 — after</span>
+      <span style="font-weight:500;color:#633806" id="pot-after">—</span>
+    </div>
+    <div class="bar-track"><div class="bar-fill" id="bar-after" style="width:0%;background:#BA7517"></div></div>
+  </div>
+
+  <!-- Recovery -->
+  <div class="w-card">
+    <div class="w-label">To recover this gap</div>
+    <div style="font-size:14px;font-weight:500;color:var(--color-text-primary);margin-bottom:2px" id="rec-monthly">—</div>
+    <div style="font-size:11px;color:var(--color-text-secondary)" id="rec-lump">—</div>
+  </div>
+
+  <!-- Assumptions -->
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+    <span class="chip" id="growth-chip">T1 growth: ~2%</span>
+    <span class="chip">Longevity: 87 yrs (ONS)</span>
+    <span class="chip">Inflation-adjusted</span>
+  </div>
+
+  <button class="confirm-btn" id="confirm-btn" style="background:#0F6E56;color:#E1F5EE">Confirm withdrawal</button>
+  <button class="cancel-btn">Cancel — keep saving</button>
+
+</div>
+
+<script>
+const BASE_INCOME = 1420, BASE_LOW = 1180, BASE_HIGH = 1680, BASE_POT = 218400, YEARS = 31;
+
+const TRANCHES = {
+  t1: { label:'T1 — cash (immediate liquidity)', balance:8200, growth:0.02, color:'#0F6E56', bg:'#E1F5EE', text:'#085041', btnBg:'#0F6E56', btnColor:'#E1F5EE', chipLabel:'T1 growth: ~2%',
+        note:'Withdrawing from T1 affects your immediate liquidity buffer. Lowest long-run cost to retirement income — T1 earns low returns. T1 target will need rebuilding before surplus flows to T2 and T3.' },
+  t2: { label:'T2 — bonds (short-term buffer)', balance:14600, growth:0.04, color:'#185FA5', bg:'#E6F1FB', text:'#0C447C', btnBg:'#185FA5', btnColor:'#E6F1FB', chipLabel:'T2 growth: ~4%',
+        note:'Withdrawing from T2 reduces your market bridge — the buffer that prevents forced T3 sales in downturns. Moderate long-run cost. T2 will need to refill before T3 receives increased contributions.' },
+  t3: { label:'T3 — growth engine', balance:34820, growth:0.06, color:'#534AB7', bg:'#EEEDFE', text:'#3C3489', btnBg:'#534AB7', btnColor:'#EEEDFE', chipLabel:'T3 growth: ~6% mid',
+        note:'Withdrawing from T3 has the highest long-run cost — every £1 taken now loses ~31 years of compound growth. T2 and T1 are unaffected. Best used only when T1 and T2 are inadequate.' },
+};
+
+let currentTranche = 't1';
+
+function fmt(n){ return '£' + Math.round(n).toLocaleString('en-GB'); }
+
+function calc(tranche, amount) {
+  const t = TRANCHES[tranche];
+  const compounded = amount * Math.pow(1 + t.growth, YEARS);
+  const newPot = Math.max(0, BASE_POT - compounded);
+  const ratio = newPot / BASE_POT;
+  return {
+    newPot: Math.round(newPot),
+    newIncome: Math.round(BASE_INCOME * ratio),
+    newLow: Math.round(BASE_LOW * ratio),
+    newHigh: Math.round(BASE_HIGH * ratio),
+    diff: Math.round(BASE_INCOME - BASE_INCOME * ratio),
+    barRatio: Math.round(ratio * 100),
+    recoveryMonthly: Math.round((BASE_INCOME - BASE_INCOME * ratio) * 1.4),
+    recoveryMonths: Math.max(1, Math.round(amount / Math.max(1, Math.round((BASE_INCOME - BASE_INCOME * ratio) * 1.4)))),
+    recoveryLump: Math.round(amount * (t.growth * 2)),
+  };
+}
+
+function setTranche(key) {
+  currentTranche = key;
+  const t = TRANCHES[key];
+
+  ['t1','t2','t3'].forEach(k => {
+    const tab = document.getElementById('tab-' + k);
+    tab.className = 'tranche-tab' + (k === key ? ' active-' + k : '');
+  });
+
+  const note = document.getElementById('tranche-note');
+  note.style.borderColor = t.color;
+  note.style.background = t.bg;
+  note.style.color = t.text;
+  note.textContent = t.note;
+
+  document.getElementById('balance-display').textContent = fmt(t.balance);
+  document.getElementById('growth-chip').textContent = t.chipLabel;
+
+  const slider = document.getElementById('amt-slider');
+  slider.max = t.balance;
+  slider.value = Math.min(parseInt(slider.value), t.balance);
+
+  const btn = document.getElementById('confirm-btn');
+  btn.style.background = t.btnBg;
+  btn.style.color = t.btnColor;
+
+  render();
+}
+
+function render() {
+  const t = TRANCHES[currentTranche];
+  const amount = parseInt(document.getElementById('amt-slider').value);
+  document.getElementById('amt-display').textContent = fmt(amount);
+
+  const remaining = t.balance - amount;
+  document.getElementById('balance-after').textContent = fmt(remaining) + ' remaining';
+
+  const r = calc(currentTranche, amount);
+
+  document.getElementById('income-before').textContent = fmt(BASE_INCOME) + '/mo';
+  document.getElementById('range-before').textContent = fmt(BASE_LOW) + '–' + fmt(BASE_HIGH);
+  document.getElementById('income-after').textContent = fmt(r.newIncome) + '/mo';
+  document.getElementById('range-after').textContent = fmt(r.newLow) + '–' + fmt(r.newHigh);
+
+  const badge = document.getElementById('diff-badge');
+  const diffText = document.getElementById('diff-text');
+  if (r.diff <= 0) {
+    badge.className = 'diff-badge pos';
+    diffText.textContent = 'Minimal impact on retirement income';
+  } else {
+    badge.className = 'diff-badge neg';
+    diffText.textContent = '–' + fmt(r.diff) + '/month in retirement';
+  }
+
+  document.getElementById('pot-before').textContent = fmt(BASE_POT);
+  document.getElementById('pot-after').textContent = fmt(r.newPot);
+  document.getElementById('bar-before').style.background = t.color;
+  document.getElementById('bar-after').style.width = r.barRatio + '%';
+
+  if (r.diff <= 0) {
+    document.getElementById('rec-monthly').textContent = 'No recovery needed';
+    document.getElementById('rec-lump').textContent = 'This withdrawal has negligible long-run impact';
+  } else {
+    document.getElementById('rec-monthly').textContent = '+' + fmt(r.recoveryMonthly) + '/month for ' + r.recoveryMonths + ' months';
+    document.getElementById('rec-lump').textContent = 'or a one-off top-up of ' + fmt(r.recoveryLump);
+  }
+}
+
+document.getElementById('amt-slider').addEventListener('input', render);
+setTranche('t1');
+</script>
